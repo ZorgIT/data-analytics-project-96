@@ -94,14 +94,14 @@ purchases_agg AS (
 )
 SELECT
     v.visit_date,
+    sum(v.visitors_count) as visitors_count,
     v.utm_source,
     v.utm_medium,
     v.utm_campaign,
-    v.visitors_count,
-    COALESCE(a.total_cost, 0) AS total_cost,
-    COALESCE(le.leads_count, 0) AS leads_count,
-    COALESCE(p.purchases_count, 0) AS purchases_count,
-    COALESCE(p.revenue, 0) AS revenue
+    sum(COALESCE(a.total_cost, 0)) AS total_cost,
+    sum(COALESCE(le.leads_count, 0)) AS leads_count,
+    sum(COALESCE(p.purchases_count, 0)) AS purchases_count,
+    sum(COALESCE(p.revenue, 0)) AS revenue
 FROM visitors_agg v
 LEFT JOIN ad_cost a
     ON v.visit_date = a.visit_date
@@ -118,10 +118,12 @@ LEFT JOIN purchases_agg p
     AND v.utm_source = p.utm_source
     AND v.utm_medium = p.utm_medium
     AND v.utm_campaign = p.utm_campaign
+group by v.visit_date,v.visitors_count, v.utm_source, v.utm_medium,v.utm_campaign
 ORDER BY
     revenue DESC NULLS LAST,
     visit_date ASC,
     visitors_count DESC,
     utm_source ASC,
     utm_medium ASC,
-    utm_campaign ASC;
+    utm_campaign asc
+ limit 15;
