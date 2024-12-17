@@ -6,9 +6,9 @@ select
     tabb.campaign as utm_campaign,
     l.lead_id,
     l.created_at,
+    sum(l.amount) as amount,
     l.closing_reason,
-    l.status_id,
-    sum(l.amount) as amount
+    l.status_id
 from
     (
         select distinct on (s.visitor_id)
