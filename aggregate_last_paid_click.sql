@@ -61,15 +61,15 @@ tab2 as (
 )
 
 select
-    to_char(tab2.visit_date, 'yyyy-mm-dd') as visit_date,
-	tab2.visitors_count,
+    tab2.visitors_count,
     tab2.source as utm_source,
     tab2.medium as utm_medium,
     tab2.campaign as utm_campaign,
     tab.total_cost,
     tab2.leads_count,
     tab2.purchases_count,
-    tab2.revenue
+    tab2.revenue,
+    to_char(tab2.visit_date, 'yyyy-mm-dd') as visit_date
 from tab2
 left join tab
     on
