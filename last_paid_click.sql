@@ -7,9 +7,23 @@ WITH paid_sessions AS (
         s.campaign AS utm_campaign,
         s.content AS utm_content
     FROM
-        sessions s
+        sessions AS s
     WHERE
         s.medium IN ('cpc', 'cpm', 'cpa', 'youtube', 'cpp', 'tg', 'social')
+),
+s AS LATERAL(
+    SELECT ps.visit_date,
+    ps.utm_source,
+    ps.utm_medium,
+    ps.utm_campaign
+    from
+    paid_sessions ps
+    where
+    ps.visitor_id = l.visitor_id
+    AND ps.visit_date <= l.created_at
+    ORDER BY
+        ps.visit_date DESC
+    LIMIT 1
 ),
 lead_last_paid_session AS (
     SELECT
@@ -24,22 +38,8 @@ lead_last_paid_session AS (
         s.utm_medium,
         s.utm_campaign
     FROM
-        leads l
-    LEFT JOIN LATERAL (
-        SELECT
-            ps.visit_date,
-            ps.utm_source,
-            ps.utm_medium,
-            ps.utm_campaign
-        FROM
-            paid_sessions ps
-        WHERE
-            ps.visitor_id = l.visitor_id
-            AND ps.visit_date <= l.created_at
-        ORDER BY
-            ps.visit_date DESC
-        LIMIT 1
-    ) s ON TRUE
+        leads AS l
+    LEFT JOIN s ON TRUE
 ),
 data_mart AS (
     SELECT
@@ -54,14 +54,13 @@ data_mart AS (
         llps.closing_reason,
         llps.status_id
     FROM
-        paid_sessions ps
+        paid_sessions AS ps
     LEFT JOIN
-        lead_last_paid_session llps
-    ON
-        ps.visitor_id = llps.visitor_id
-        AND ps.visit_date = llps.visit_date
+        lead_last_paid_session AS llps
+        ON
+            ps.visitor_id = llps.visitor_id
+            AND ps.visit_date = llps.visit_date
 )
-
 SELECT
     visitor_id,
     visit_date,
@@ -80,4 +79,4 @@ ORDER BY
     visit_date ASC,
     utm_source ASC,
     utm_medium ASC,
-    utm_campaign asc;
+    utm_campaign ASC;
